@@ -1,5 +1,9 @@
 # tests_rubezh
 
+login: User
+password: 12345
+
+
 ## Project setup
 ```
 npm install
