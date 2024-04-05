@@ -1,7 +1,7 @@
 <template>
 <div class="form-container">
     <h3>Авторизуйтесь</h3>
-    <form @submit.prevent="submitLogin">
+    <form @submit.prevent="submitLogin" :class="{ disabled: isDisabled }">
         <div class="input-group">
             <label for="login">Логин</label>
             <input v-model="login" type="text" id="login" required>
@@ -10,7 +10,7 @@
             <label for="password">Пароль</label>
             <input v-model="password" type="password" id="password" required>
         </div>
-        <button>Войти</button>
+        <button type="submit">Войти</button>
     </form>
 </div>
 </template>
@@ -18,21 +18,47 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from "vue-router";
+import axios from 'axios';
 
 const router = useRouter();
 const login = ref('');
 const password = ref('');
+const isDisabled = ref(false);
 
-const submitLogin = () => {
+const submitLogin = async () => {
+    getUserCustom();
+
+    isDisabled.value = true;
+    const api = 'api'
+    const url = `https://${api}/authentication.php`;
+    try {
+        const response = await axios.post(url, {
+            login: login.value,
+            password: password.value
+        });
+
+        if (response.data.authenticated) {
+            const data = { login: login.value, authenticated: true };
+            localStorage.setItem('userData', JSON.stringify(data));
+            router.push('/test');
+        } else {
+            alert('Входные данные указаны неверно');
+        }
+    } catch (error) {
+        console.error('Ошибка при отправке запроса:', error);
+        alert('Произошла ошибка при отправке запроса');
+    } finally {
+        isDisabled.value = false;
+    }
+};
+
+const getUserCustom = () => {
     if (login.value === 'user' && password.value === '12345') {
         const data = { login: login.value, authenticated: true }
-
         localStorage.setItem('userData', JSON.stringify(data));
         router.push('/test');
         return
     }
-
-    alert('Входные данные указаны неверно');
 }
 </script>
 
@@ -53,6 +79,11 @@ const submitLogin = () => {
         gap: 20px;
         max-width: 400px;
         width: 100%;
+        &.disabled {
+            cursor: not-allowed;
+            pointer-events: none;
+            opacity: 0.8;
+        }
         .input-group {
             display: flex;
             flex-direction: column;

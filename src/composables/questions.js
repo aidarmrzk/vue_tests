@@ -78,6 +78,32 @@ export const checkAnswers = () => {
             wrong.value++;
         }
     });
-
     resultStatus.value = true;
+
+    sendData();
 };
+
+const sendData = async () => {   
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const login = userData.login;
+
+    const api = 'api'
+    const url = `https://${api}/send.php`;
+
+    try {
+        const response = await axios.post(url, {
+            login: login,
+            right: right.value,
+            wrong: wrong.value
+        });
+        console.log('Результат запроса:', response.data);
+        if (response.data.success) {
+            alert(response.data.message);
+        } else {
+            alert('Произошла ошибка: ' + response.data.message);
+        } 
+    } catch (error) {
+        console.error('Ошибка при отправке запроса:', error);
+        alert('Произошла ошибка при отправке запроса');
+    }
+}
